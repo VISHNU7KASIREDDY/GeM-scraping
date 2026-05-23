@@ -7,10 +7,9 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config.settings import PROCESSED_CSV_PATH, INSIGHTS_JSON_PATH
 from src.insights.analyzer import generate_summary_report, save_insights
-
 def pretty_print_report(report: dict) -> None:
     print('\n' + '=' * 60)
-    print('  📊 INSIGHTS REPORT')
+    print('   INSIGHTS REPORT')
     print('=' * 60)
     overview = report.get('overview', {})
     print(f'\n  📋 Overview:')
@@ -62,7 +61,6 @@ def pretty_print_report(report: dict) -> None:
             label = flag.replace('anomaly_', '').replace('_', ' ').title()
             print(f'     • {label}: {count} row(s)')
     print('\n' + '=' * 60)
-
 def main() -> None:
     print('=' * 60)
     print('  GeM INSIGHTS GENERATOR')
@@ -83,7 +81,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print('\n🛑 Insights generation interrupted by user.')
+        print('\n Insights generation interrupted by user.')
         sys.exit(0)
     except Exception as e:
         print(f'\n❌ Insights generation failed: {e}')

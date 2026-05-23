@@ -1,74 +1,74 @@
-# 🏛️ GeM Bid Scraper
+#  GeM Bid Scraper
 
 > Automated scraper for India's Government e-Marketplace (GeM) — extracts bid listings, results, vendor evaluations, and generates procurement insights.
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 GeM-scraping/
-│
-├── config/
-│   ├── __init__.py
-│   └── settings.py              # Central configuration (paths, URLs, settings)
-│
-├── src/
-│   ├── __init__.py
-│   ├── browser/
-│   │   ├── __init__.py
-│   │   └── driver.py            # BrowserManager — Playwright wrapper
-│   │
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── schemas.py           # Data models: Bid, BidResult, VendorEvaluation, ScrapedBid
-│   │
-│   ├── scrapers/
-│   │   ├── __init__.py
-│   │   ├── filter.py            # Apply search filters on GeM portal
-│   │   ├── listing.py           # Scrape bid listing cards
-│   │   ├── bid_result.py        # Scrape bid results (winner info)
-│   │   └── evaluation.py        # Scrape vendor evaluation tables
-│   │
-│   ├── processing/
-│   │   ├── __init__.py
-│   │   ├── cleaner.py           # Data cleaning pipeline (currency, names, missing values)
-│   │   └── anomaly.py           # Anomaly detection (winner-not-lowest, single-bidder, etc.)
-│   │
-│   └── insights/
-│       ├── __init__.py
-│       └── analyzer.py          # Analytics: competition %, price gaps, repeat winners
-│
-├── scripts/
-│   ├── run_scraper.py           # 🚀 Main entry point — runs the full scraping pipeline
-│   ├── run_processing.py        # 🧹 Standalone cleaning + anomaly detection
-│   └── run_insights.py          # 📊 Standalone insights generation
-│
-├── tests/
-│   ├── __init__.py
-│   ├── test_cleaner.py          # Unit tests for data cleaning functions
-│   └── test_schemas.py          # Unit tests for data model schemas
-│
-├── docs/
-│   └── writeup.md               # Project writeup and documentation
-│
-├── output/                      # Generated at runtime (git-ignored)
-│   ├── raw/
-│   │   └── bids_raw.json        # Raw scraped data
-│   ├── processed/
-│   │   └── bids_cleaned.csv     # Cleaned & anomaly-flagged data
-│   ├── insights/
-│   │   └── summary_report.json  # Analytics report
-│   └── screenshots/             # Error/debug screenshots
-│
-├── .env.example                 # Environment variable template
-├── requirements.txt             # Python dependencies
-└── README.md                    # This file
+
+ config/
+    __init__.py
+    settings.py              # Central configuration (paths, URLs, settings)
+
+ src/
+    __init__.py
+    browser/
+       __init__.py
+       driver.py            # BrowserManager — Playwright wrapper
+   
+    models/
+       __init__.py
+       schemas.py           # Data models: Bid, BidResult, VendorEvaluation, ScrapedBid
+   
+    scrapers/
+       __init__.py
+       filter.py            # Apply search filters on GeM portal
+       listing.py           # Scrape bid listing cards
+       bid_result.py        # Scrape bid results (winner info)
+       evaluation.py        # Scrape vendor evaluation tables
+   
+    processing/
+       __init__.py
+       cleaner.py           # Data cleaning pipeline (currency, names, missing values)
+       anomaly.py           # Anomaly detection (winner-not-lowest, single-bidder, etc.)
+   
+    insights/
+        __init__.py
+        analyzer.py          # Analytics: competition %, price gaps, repeat winners
+
+ scripts/
+    run_scraper.py           #  Main entry point — runs the full scraping pipeline
+    run_processing.py        #  Standalone cleaning + anomaly detection
+    run_insights.py          #  Standalone insights generation
+
+ tests/
+    __init__.py
+    test_cleaner.py          # Unit tests for data cleaning functions
+    test_schemas.py          # Unit tests for data model schemas
+
+ docs/
+    writeup.md               # Project writeup and documentation
+
+ output/                      # Generated at runtime (git-ignored)
+    raw/
+       bids_raw.json        # Raw scraped data
+    processed/
+       bids_cleaned.csv     # Cleaned & anomaly-flagged data
+    insights/
+       summary_report.json  # Analytics report
+    screenshots/             # Error/debug screenshots
+
+ .env.example                 # Environment variable template
+ requirements.txt             # Python dependencies
+ README.md                    # This file
 ```
 
 ---
 
-## ⚙️ Prerequisites
+##  Prerequisites
 
 - **Python 3.10+** — required for type hints and modern syntax
 - **pip** — Python package manager
@@ -76,7 +76,7 @@ GeM-scraping/
 
 ---
 
-## 🚀 Setup
+##  Setup
 
 ### 1. Clone the repository
 
@@ -114,7 +114,7 @@ cp .env.example .env
 
 ---
 
-## 🏃 How to Run
+##  How to Run
 
 ### Full Pipeline (Scrape → Process → Analyse)
 
@@ -145,7 +145,7 @@ python -m pytest tests/ -v
 
 ---
 
-## 📄 Output Files
+##  Output Files
 
 | File | Format | Description |
 |:-----|:-------|:------------|
@@ -156,19 +156,19 @@ python -m pytest tests/ -v
 
 ---
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   SCRAPER   │────▶│   CLEANER   │────▶│   ANOMALY    │────▶│  INSIGHTS   │
-│             │     │             │     │  DETECTOR    │     │  ANALYZER   │
-│ • Filters   │     │ • Currency  │     │              │     │             │
-│ • Listings  │     │ • Names     │     │ • Winner≠L1  │     │ • % Multi   │
-│ • Results   │     │ • Missing   │     │ • Single bid │     │ • L1-L2 gap │
-│ • Evals     │     │ • Dupes     │     │ • Price gap  │     │ • Repeats   │
-└──────┬──────┘     └──────┬──────┘     └──────┬───────┘     └──────┬──────┘
-       │                   │                   │                    │
-       ▼                   ▼                   ▼                    ▼
+               
+   SCRAPER      CLEANER      ANOMALY      INSIGHTS   
+                                      DETECTOR           ANALYZER   
+ • Filters         • Currency                                       
+ • Listings        • Names           • WinnerL1        • % Multi   
+ • Results         • Missing         • Single bid       • L1-L2 gap 
+ • Evals           • Dupes           • Price gap        • Repeats   
+               
+                                                                 
+                                                                 
   bids_raw.json     bids_cleaned.csv    (updated CSV)      summary_report.json
 ```
 
@@ -184,7 +184,7 @@ python -m pytest tests/ -v
 
 ---
 
-## 🔧 Configuration
+##  Configuration
 
 All settings live in `config/settings.py`:
 
@@ -198,7 +198,7 @@ All settings live in `config/settings.py`:
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### "Playwright not found"
 ```bash
@@ -230,7 +230,7 @@ python -m pytest tests/test_cleaner.py -v
 
 ---
 
-## 📝 License
+##  License
 
 This project is licensed under the MIT License.
 

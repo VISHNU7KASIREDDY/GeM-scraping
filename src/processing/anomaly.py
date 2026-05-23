@@ -3,18 +3,17 @@ import sys
 from pathlib import Path
 import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-
 def flag_winner_not_lowest(df: pd.DataFrame) -> pd.DataFrame:
     df['anomaly_winner_not_lowest'] = False
     if 'vendor_price' not in df.columns or 'winner_price' not in df.columns:
-        print('[ANOMALY] ⚠ Missing price columns — skipping winner-not-lowest check')
+        print('[ANOMALY]  Missing price columns  skipping winner-not-lowest check')
         return df
     if 'bid_id' not in df.columns:
-        print('[ANOMALY] ⚠ Missing bid_id column — skipping winner-not-lowest check')
+        print('[ANOMALY]  Missing bid_id column  skipping winner-not-lowest check')
         return df
     valid_prices = df[df['vendor_price'] > 0]
     if valid_prices.empty:
-        print('[ANOMALY] No valid vendor prices found — skipping check')
+        print('[ANOMALY] No valid vendor prices found  skipping check')
         return df
     min_price_per_bid = valid_prices.groupby('bid_id')['vendor_price'].min()
     for bid_id, min_price in min_price_per_bid.items():
@@ -23,11 +22,10 @@ def flag_winner_not_lowest(df: pd.DataFrame) -> pd.DataFrame:
     flagged = df['anomaly_winner_not_lowest'].sum()
     print(f'[ANOMALY] Winner-not-lowest: {flagged} row(s) flagged')
     return df
-
 def flag_single_bidder(df: pd.DataFrame) -> pd.DataFrame:
     df['anomaly_single_bidder'] = False
     if 'bid_id' not in df.columns or 'vendor_name' not in df.columns:
-        print('[ANOMALY] ⚠ Missing columns — skipping single-bidder check')
+        print('[ANOMALY]  Missing columns  skipping single-bidder check')
         return df
     vendor_counts = df.groupby('bid_id')['vendor_name'].nunique()
     single_bid_ids = vendor_counts[vendor_counts == 1].index
@@ -35,11 +33,10 @@ def flag_single_bidder(df: pd.DataFrame) -> pd.DataFrame:
     flagged_bids = len(single_bid_ids)
     print(f'[ANOMALY] Single-bidder: {flagged_bids} bid(s) flagged')
     return df
-
 def flag_large_price_gap(df: pd.DataFrame, threshold: float=0.5) -> pd.DataFrame:
     df['anomaly_large_gap'] = False
     if 'bid_id' not in df.columns or 'vendor_price' not in df.columns:
-        print('[ANOMALY] ⚠ Missing columns — skipping large-gap check')
+        print('[ANOMALY]  Missing columns  skipping large-gap check')
         return df
     for bid_id, group in df[df['vendor_price'] > 0].groupby('bid_id'):
         sorted_prices = group['vendor_price'].sort_values().values
@@ -55,7 +52,6 @@ def flag_large_price_gap(df: pd.DataFrame, threshold: float=0.5) -> pd.DataFrame
     flagged = df.loc[df['anomaly_large_gap'], 'bid_id'].nunique()
     print(f'[ANOMALY] Large price gap (>{threshold * 100:.0f}%): {flagged} bid(s) flagged')
     return df
-
 def add_all_anomaly_flags(df: pd.DataFrame) -> pd.DataFrame:
     print('=' * 60)
     print('  ANOMALY DETECTION')

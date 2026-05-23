@@ -6,7 +6,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config.settings import RAW_JSON_PATH, PROCESSED_CSV_PATH
 from src.processing.cleaner import run_full_cleaning
 from src.processing.anomaly import add_all_anomaly_flags
-
 def main() -> None:
     print('=' * 60)
     print('  GeM DATA PROCESSING PIPELINE')
@@ -23,7 +22,7 @@ def main() -> None:
     PROCESSED_CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(PROCESSED_CSV_PATH, index=False, encoding='utf-8')
     print('\n' + '=' * 60)
-    print('  📊 PROCESSING SUMMARY')
+    print('   PROCESSING SUMMARY')
     print('=' * 60)
     print(f'  Total rows:         {len(df)}')
     if 'bid_id' in df.columns:
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print('\n🛑 Processing interrupted by user.')
+        print('\n Processing interrupted by user.')
         sys.exit(0)
     except Exception as e:
         print(f'\n❌ Processing failed: {e}')

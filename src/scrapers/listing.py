@@ -19,7 +19,6 @@ PAGINATION_ACTIVE: str = 'ul.pagination li.active a'
 PAGINATION_ITEMS: str = 'ul.pagination li a'
 PAGINATION_NEXT: str = 'ul.pagination li:last-child a'
 PAGINATION_DISABLED_NEXT: str = 'ul.pagination li.disabled:last-child'
-
 async def extract_single_bid_card(card_element: ElementHandle, page: Page) -> Optional[Bid]:
     bid = Bid()
     try:
@@ -80,9 +79,8 @@ async def extract_single_bid_card(card_element: ElementHandle, page: Page) -> Op
                 logger.debug('  numeric_id = %s, result_url = %s', numeric_id, bid.result_url)
     except Exception as exc:
         logger.debug('Could not build result_url for %s: %s', bid.bid_id, exc)
-    logger.info('  ✓ Extracted bid: %s — %s', bid.bid_id, bid.title[:60])
+    logger.info('   Extracted bid: %s  %s', bid.bid_id, bid.title[:60])
     return bid
-
 async def extract_all_bids_on_page(page: Page) -> list[Bid]:
     logger.info('Extracting all bid cards from the current page...')
     card_elements: list[ElementHandle] = await page.query_selector_all(BID_CARDS_CONTAINER)
@@ -95,11 +93,10 @@ async def extract_all_bids_on_page(page: Page) -> list[Bid]:
             bids.append(bid)
     logger.info('Extracted %d bids from this page.', len(bids))
     return bids
-
 async def get_pagination_info(page: Page) -> dict:
     pagination = await page.query_selector(PAGINATION_CONTAINER)
     if not pagination:
-        logger.info('No pagination found — results fit on a single page.')
+        logger.info('No pagination found  results fit on a single page.')
         return {'current_page': 1, 'total_pages': 1, 'has_next': False}
     current_page: int = 1
     try:
@@ -123,7 +120,6 @@ async def get_pagination_info(page: Page) -> dict:
     info: dict = {'current_page': current_page, 'total_pages': total_pages, 'has_next': has_next}
     logger.info('Pagination info: %s', info)
     return info
-
 async def navigate_to_next_page(page: Page) -> bool:
     pagination_info: dict = await get_pagination_info(page)
     if not pagination_info['has_next']:
@@ -152,13 +148,12 @@ async def navigate_to_next_page(page: Page) -> bool:
     await random_delay()
     logger.info('Successfully navigated to the next page.')
     return True
-
 async def scrape_all_listings(page: Page, target_count: int=30) -> list[Bid]:
     all_bids: list[Bid] = []
     page_number: int = 1
-    logger.info('═══ Starting listing extraction (target: %d bids) ═══', target_count)
+    logger.info(' Starting listing extraction (target: %d bids) ', target_count)
     while len(all_bids) < target_count:
-        logger.info('── Page %d — collected %d/%d bids so far ──', page_number, len(all_bids), target_count)
+        logger.info(' Page %d  collected %d/%d bids so far ', page_number, len(all_bids), target_count)
         page_bids: list[Bid] = await extract_all_bids_on_page(page)
         if not page_bids:
             logger.warning('No bids extracted from page %d.  Stopping.', page_number)
@@ -176,5 +171,5 @@ async def scrape_all_listings(page: Page, target_count: int=30) -> list[Bid]:
     if len(all_bids) > target_count:
         all_bids = all_bids[:target_count]
         logger.info('Trimmed result list to exactly %d bids.', target_count)
-    logger.info('═══ Listing extraction complete: %d bids collected across %d pages ═══', len(all_bids), page_number)
+    logger.info(' Listing extraction complete: %d bids collected across %d pages ', len(all_bids), page_number)
     return all_bids

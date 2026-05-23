@@ -8,7 +8,7 @@ This write-up covers how we built the GeM scraper system, the real-world hurdles
 
 We designed this system as a straightforward, four-step pipeline: **Scrape → Clean → Detect Anomalies → Extract Insights**.
 
-Here’s why we chose our tools:
+Heres why we chose our tools:
 *   **Playwright (Async):** GeM is a modern web app with dynamic layouts and heavy javascript redirects. Standard request libraries (like `requests`) fail instantly here. Playwright allows us to open a real browser context, wait for elements to fully load, and handle actual user interactions.
 *   **BeautifulSoup4:** Once Playwright pulls down the target HTML block, BeautifulSoup parses the evaluation tables. It is lightweight, fast, and does not require active browser resources.
 *   **Pandas:** The tabular data is cleaned, flattened, normalized, and analyzed using Pandas, which is perfect for this kind of tabular data manipulation.

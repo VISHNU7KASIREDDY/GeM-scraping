@@ -8,12 +8,10 @@ from typing import Optional, Callable, Any
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from config.settings import MIN_DELAY, MAX_DELAY, SCREENSHOT_DIR, ELEMENT_TIMEOUT, SELECTORS, SESSION_STATE_PATH
 from playwright.async_api import Page
-
 async def random_delay(min_sec: float=MIN_DELAY, max_sec: float=MAX_DELAY) -> None:
     delay: float = random.uniform(min_sec, max_sec)
     print(f'  ⏳ Waiting {delay:.1f}s (rate limiting)...')
     await asyncio.sleep(delay)
-
 async def wait_and_click(page: Page, selector: str, timeout: int=ELEMENT_TIMEOUT) -> bool:
     try:
         await page.wait_for_selector(selector, timeout=timeout, state='visible')
@@ -23,7 +21,6 @@ async def wait_and_click(page: Page, selector: str, timeout: int=ELEMENT_TIMEOUT
     except Exception as e:
         print(f"  ❌ Failed to click '{selector}': {e}")
         return False
-
 async def safe_get_text(page: Page, selector: str, default: str='') -> str:
     try:
         element = await page.query_selector(selector)
@@ -34,7 +31,6 @@ async def safe_get_text(page: Page, selector: str, default: str='') -> str:
     except Exception as e:
         print(f"  ⚠️  Could not extract text for '{selector}': {e}")
         return default
-
 async def safe_get_attribute(page: Page, selector: str, attribute: str, default: str='') -> str:
     try:
         element = await page.query_selector(selector)
@@ -45,7 +41,6 @@ async def safe_get_attribute(page: Page, selector: str, attribute: str, default:
     except Exception as e:
         print(f"  ⚠️  Could not extract attribute '{attribute}' for '{selector}': {e}")
         return default
-
 async def take_debug_screenshot(page: Page, name: str) -> Optional[str]:
     try:
         SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
@@ -57,34 +52,30 @@ async def take_debug_screenshot(page: Page, name: str) -> Optional[str]:
     except Exception as e:
         print(f"  ⚠️  Failed to take screenshot '{name}': {e}")
         return None
-
 async def check_for_captcha(page: Page) -> bool:
     try:
         captcha_element = await page.query_selector(SELECTORS['captcha_frame'])
         if captcha_element:
-            print('\n  🛑 CAPTCHA DETECTED!')
-            print('  ────────────────────────────────────────')
+            print('\n   CAPTCHA DETECTED!')
+            print('  ')
             print('  A CAPTCHA challenge is blocking the scraper.')
             print('  If running in headed mode (HEADLESS=false),')
             print('  please solve it manually in the browser window.')
-            print('  ────────────────────────────────────────\n')
+            print('  \n')
             await take_debug_screenshot(page, 'captcha_detected')
-            print('  ⏳ Waiting up to 5 minutes for CAPTCHA resolution...')
+            print('   Waiting up to 5 minutes for CAPTCHA resolution...')
             try:
                 await page.wait_for_selector(SELECTORS['captcha_frame'], state='detached', timeout=300000)
-                print('  ✅ CAPTCHA resolved! Continuing...')
+                print('   CAPTCHA resolved! Continuing...')
             except Exception:
-                print('  ⚠️  CAPTCHA wait timed out after 5 minutes')
+                print('    CAPTCHA wait timed out after 5 minutes')
             return True
         return False
     except Exception as e:
         print(f'  ⚠️  Error checking for CAPTCHA: {e}')
         return False
-
 def retry_on_failure(max_retries: int=3, delay: float=2.0) -> Callable:
-
     def decorator(func: Callable) -> Callable:
-
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             last_exception: Optional[Exception] = None
@@ -105,7 +96,6 @@ def retry_on_failure(max_retries: int=3, delay: float=2.0) -> Callable:
             raise last_exception
         return wrapper
     return decorator
-
 async def autofill_login_credentials(page: Page, username: str, password: str) -> None:
     try:
         if 'sso.gem.gov.in' not in page.url:
@@ -132,7 +122,6 @@ async def autofill_login_credentials(page: Page, username: str, password: str) -
                 continue
     except Exception as e:
         print(f'  ⚠️  Failed to auto-fill credentials: {e}')
-
 async def handle_login_if_needed(page: Page, target_url: Optional[str]=None) -> bool:
     await page.wait_for_timeout(1500)
     current_url = page.url
@@ -141,11 +130,11 @@ async def handle_login_if_needed(page: Page, target_url: Optional[str]=None) -> 
     if not is_sso and (not is_homepage_redirect):
         return True
     print('\n' + '=' * 80)
-    print('🔒 SSO LOGIN REQUIRED!')
+    print(' SSO LOGIN REQUIRED!')
     print(f'Current URL: {current_url}')
     print('=' * 80)
     if is_homepage_redirect:
-        print('  → Redirected to portal landing page. Navigating to SSO Login Page...')
+        print('   Redirected to portal landing page. Navigating to SSO Login Page...')
         try:
             await page.goto('https://sso.gem.gov.in/ARXSSO/oauth/login', wait_until='domcontentloaded', timeout=30000)
             current_url = page.url
@@ -154,7 +143,7 @@ async def handle_login_if_needed(page: Page, target_url: Optional[str]=None) -> 
     from config.settings import HEADLESS
     if HEADLESS:
         print('\n' + 'X' * 80)
-        print('❌ ERROR: GeM SSO LOGIN REQUIRED BUT SCRAPER IS RUNNING IN HEADLESS MODE!')
+        print(' ERROR: GeM SSO LOGIN REQUIRED BUT SCRAPER IS RUNNING IN HEADLESS MODE!')
         print('X' * 80)
         print('To solve this:')
         print('1. Edit your .env file and set HEADLESS=false')
@@ -170,11 +159,11 @@ async def handle_login_if_needed(page: Page, target_url: Optional[str]=None) -> 
     if username and password:
         print('  Attempting to auto-fill credentials...')
         await autofill_login_credentials(page, username, password)
-        print('\n🔑 Credentials auto-filled! Please solve the CAPTCHA and click Login.\n')
+        print('\n Credentials auto-filled! Please solve the CAPTCHA and click Login.\n')
     else:
-        print('\n🔑 Please enter your GeM Login Details and solve the CAPTCHA in the browser window.\n')
+        print('\n Please enter your GeM Login Details and solve the CAPTCHA in the browser window.\n')
     print('=' * 80)
-    print('⏳ WAITING FOR USER TO COMPLETE LOGIN...')
+    print(' WAITING FOR USER TO COMPLETE LOGIN...')
     print('Once you complete the login, the browser will redirect back to GeM.')
     print('We will automatically detect this and resume scraping.')
     print('=' * 80)

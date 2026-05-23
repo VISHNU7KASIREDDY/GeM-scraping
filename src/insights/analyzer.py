@@ -6,10 +6,9 @@ from typing import Any
 import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from config.settings import INSIGHTS_JSON_PATH
-
 def compute_multi_bidder_percentage(df: pd.DataFrame) -> float:
     if 'bid_id' not in df.columns or 'vendor_name' not in df.columns:
-        print('[INSIGHT] ⚠ Missing columns for multi-bidder calculation')
+        print('[INSIGHT]  Missing columns for multi-bidder calculation')
         return 0.0
     vendor_counts: pd.Series = df.groupby('bid_id')['vendor_name'].nunique()
     if len(vendor_counts) == 0:
@@ -19,11 +18,10 @@ def compute_multi_bidder_percentage(df: pd.DataFrame) -> float:
     percentage: float = multi_bidder_count / total_bids * 100
     print(f'[INSIGHT] Bids with >3 participants: {multi_bidder_count}/{total_bids} ({percentage:.1f}%)')
     return round(percentage, 2)
-
 def compute_l1_l2_gap(df: pd.DataFrame) -> dict:
     empty_result: dict = {'average': 0.0, 'median': 0.0, 'min': 0.0, 'max': 0.0}
     if 'bid_id' not in df.columns or 'vendor_price' not in df.columns:
-        print('[INSIGHT] ⚠ Missing columns for L1-L2 gap calculation')
+        print('[INSIGHT]  Missing columns for L1-L2 gap calculation')
         return empty_result
     gaps: list[float] = []
     for bid_id, group in df[df['vendor_price'] > 0].groupby('bid_id'):
@@ -43,10 +41,9 @@ def compute_l1_l2_gap(df: pd.DataFrame) -> dict:
     result: dict = {'average': round(gap_series.mean(), 2), 'median': round(gap_series.median(), 2), 'min': round(gap_series.min(), 2), 'max': round(gap_series.max(), 2)}
     print(f"[INSIGHT] L1-L2 gap: avg={result['average']}%, median={result['median']}%")
     return result
-
 def find_repeat_winners(df: pd.DataFrame) -> list[dict]:
     if 'bid_id' not in df.columns or 'winner_name' not in df.columns:
-        print('[INSIGHT] ⚠ Missing columns for repeat-winners analysis')
+        print('[INSIGHT]  Missing columns for repeat-winners analysis')
         return []
     winners = df[['bid_id', 'winner_name']].drop_duplicates()
     win_counts = winners.groupby('winner_name')['bid_id'].agg(['count', list])
@@ -57,16 +54,14 @@ def find_repeat_winners(df: pd.DataFrame) -> list[dict]:
         result.append({'vendor_name': vendor_name, 'win_count': int(row['win_count']), 'bid_ids': row['bid_ids']})
     print(f'[INSIGHT] Repeat winners: {len(result)} vendor(s) with ≥2 wins')
     return result
-
 def category_distribution(df: pd.DataFrame) -> dict:
     if 'bid_id' not in df.columns or 'category' not in df.columns:
-        print('[INSIGHT] ⚠ Missing columns for category distribution')
+        print('[INSIGHT]  Missing columns for category distribution')
         return {}
     bids_per_category = df[['bid_id', 'category']].drop_duplicates().groupby('category').size().sort_values(ascending=False)
     result: dict = bids_per_category.to_dict()
     print(f'[INSIGHT] Categories found: {len(result)}')
     return result
-
 def generate_summary_report(df: pd.DataFrame) -> dict:
     print('=' * 60)
     print('  INSIGHTS GENERATION')
@@ -85,11 +80,9 @@ def generate_summary_report(df: pd.DataFrame) -> dict:
     print(f'\n✅ Report generated with {len(report)} sections')
     print('=' * 60)
     return report
-
 def save_insights(report: dict, output_path: Path=INSIGHTS_JSON_PATH) -> None:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-
     def _default_serializer(obj: Any) -> Any:
         if hasattr(obj, 'item'):
             return obj.item()

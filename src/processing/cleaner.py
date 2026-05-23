@@ -8,7 +8,6 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from config.settings import RAW_JSON_PATH, PROCESSED_CSV_PATH
 from src.models.schemas import ScrapedBid, Bid, BidResult, VendorEvaluation
-
 def load_raw_data(filepath: Path) -> pd.DataFrame:
     filepath = Path(filepath)
     if not filepath.exists():
@@ -27,7 +26,6 @@ def load_raw_data(filepath: Path) -> pd.DataFrame:
     df = pd.DataFrame(all_rows)
     print(f'[CLEAN] Flattened to {len(df)} row(s) × {len(df.columns)} column(s)')
     return df
-
 def clean_currency(value: str) -> float:
     if value is None:
         return 0.0
@@ -43,10 +41,8 @@ def clean_currency(value: str) -> float:
         if match:
             return float(match.group())
         return 0.0
-
 def normalize_vendor_names(df: pd.DataFrame) -> pd.DataFrame:
     abbreviations: dict[str, str] = {'\\bpvt\\b': 'private', '\\bltd\\b': 'limited', '\\bcorp\\b': 'corporation', '\\binc\\b': 'incorporated', '\\bco\\b': 'company'}
-
     def _normalize(name: str) -> str:
         if not isinstance(name, str):
             return str(name)
@@ -63,7 +59,6 @@ def normalize_vendor_names(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = df[col].astype(str).apply(_normalize)
             print(f'[CLEAN] Normalised {col}: {df[col].nunique()} unique values')
     return df
-
 def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     df['is_complete'] = ~df.isnull().any(axis=1)
     complete_count = df['is_complete'].sum()
@@ -79,7 +74,6 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = df[col].fillna(False)
     print(f"[CLEAN] Missing values filled (strings→'Unknown', numbers→0)")
     return df
-
 def detect_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     if 'bid_id' in df.columns and 'vendor_name' in df.columns:
         df['is_duplicate'] = df.duplicated(subset=['bid_id', 'vendor_name'], keep=False)
@@ -87,26 +81,25 @@ def detect_duplicates(df: pd.DataFrame) -> pd.DataFrame:
         print(f'[CLEAN] Found {dup_count} duplicate row(s) across all bids')
     else:
         df['is_duplicate'] = False
-        print('[CLEAN] ⚠ Missing bid_id/vendor_name columns — skipping duplicate check')
+        print('[CLEAN]  Missing bid_id/vendor_name columns  skipping duplicate check')
     return df
-
 def run_full_cleaning(input_path: Path=RAW_JSON_PATH, output_path: Path=PROCESSED_CSV_PATH) -> pd.DataFrame:
     print('=' * 60)
     print('  DATA CLEANING PIPELINE')
     print('=' * 60)
-    print('\n── Step 1/5: Loading raw data …')
+    print('\n Step 1/5: Loading raw data ')
     df = load_raw_data(input_path)
-    print('\n── Step 2/5: Cleaning currency values …')
+    print('\n Step 2/5: Cleaning currency values ')
     currency_columns = ['vendor_price', 'winner_price']
     for col in currency_columns:
         if col in df.columns:
             df[col] = df[col].apply(clean_currency)
             print(f'   {col}: min={df[col].min():.2f}, max={df[col].max():.2f}')
-    print('\n── Step 3/5: Normalising vendor names …')
+    print('\n Step 3/5: Normalising vendor names ')
     df = normalize_vendor_names(df)
-    print('\n── Step 4/5: Handling missing values …')
+    print('\n Step 4/5: Handling missing values ')
     df = handle_missing_values(df)
-    print('\n── Step 5/5: Detecting duplicates …')
+    print('\n Step 5/5: Detecting duplicates ')
     df = detect_duplicates(df)
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -10,7 +10,6 @@ from config.settings import DEFAULT_TIMEOUT
 from src.models.schemas import Bid, VendorEvaluation
 from src.browser.helpers import random_delay, safe_get_text, wait_and_click, take_debug_screenshot, check_for_captcha, handle_login_if_needed
 logger = logging.getLogger(__name__)
-
 async def find_evaluation_section(page: Page) -> bool:
     logger.info('Looking for evaluation section...')
     try:
@@ -28,17 +27,16 @@ async def find_evaluation_section(page: Page) -> bool:
         for panel_id in ['collapseThree', 'collapseTwo', 'collapseOne']:
             panel = soup.find(id=panel_id)
             if panel and panel.find('table'):
-                logger.info('  → Evaluation section found inside panel #%s', panel_id)
+                logger.info('   Evaluation section found inside panel #%s', panel_id)
                 return True
         for t in soup.find_all('table'):
             headers = [th.get_text(strip=True).lower() for th in t.find_all('th')]
             if any(('seller' in h or 'vendor' in h for h in headers)):
-                logger.info('  → Evaluation section found using fallback header search')
+                logger.info('   Evaluation section found using fallback header search')
                 return True
     except Exception as exc:
         logger.debug('Error checking section visibility: %s', exc)
     return False
-
 async def extract_vendor_table(page: Page, bid_id: str) -> list[VendorEvaluation]:
     logger.info('Extracting vendor evaluation table for bid %s...', bid_id)
     vendors: list[VendorEvaluation] = []
@@ -51,18 +49,18 @@ async def extract_vendor_table(page: Page, bid_id: str) -> list[VendorEvaluation
             if panel:
                 table = panel.find('table')
                 if table:
-                    logger.info('  → Found table inside panel #%s', panel_id)
+                    logger.info('   Found table inside panel #%s', panel_id)
                     break
         if not table:
             for t in soup.find_all('table'):
                 headers = [th.get_text(strip=True).lower() for th in t.find_all('th')]
                 if any(('seller' in h or 'vendor' in h for h in headers)):
                     table = t
-                    logger.info('  → Found table using fallback header search')
+                    logger.info('   Found table using fallback header search')
                     break
         if table:
             headers = [th.get_text(strip=True) for th in table.find_all('th')]
-            logger.info('  → Table headers: %s', headers)
+            logger.info('   Table headers: %s', headers)
             name_idx = None
             price_idx = None
             rank_idx = None
@@ -118,21 +116,20 @@ async def extract_vendor_table(page: Page, bid_id: str) -> list[VendorEvaluation
                     if status_idx is not None and status_idx < len(cells):
                         vendor.status_flag = cells[status_idx].get_text(strip=True)
                     vendors.append(vendor)
-                    logger.info('    ✓ Vendor #%d: Rank=%s, Name=%s, Price=%s, Status=%s', row_idx, vendor.vendor_rank or 'N/A', vendor.vendor_name[:30], vendor.vendor_price or 'N/A', vendor.status_flag or 'N/A')
+                    logger.info('     Vendor #%d: Rank=%s, Name=%s, Price=%s, Status=%s', row_idx, vendor.vendor_rank or 'N/A', vendor.vendor_name[:30], vendor.vendor_price or 'N/A', vendor.status_flag or 'N/A')
     except Exception as e:
         logger.error('Error parsing vendor evaluation table for %s: %s', bid_id, e)
     return vendors
-
 async def scrape_all_evaluations(page: Page, bids: list[Bid]) -> dict[str, list[VendorEvaluation]]:
     total: int = len(bids)
     evaluations: dict[str, list[VendorEvaluation]] = {}
-    logger.info('═══ Starting evaluation extraction for %d bids ═══', total)
+    logger.info(' Starting evaluation extraction for %d bids ', total)
     for index, bid in enumerate(bids, start=1):
-        logger.info('── Processing evaluation %d/%d: %s ──', index, total, bid.bid_id)
+        logger.info(' Processing evaluation %d/%d: %s ', index, total, bid.bid_id)
         try:
             target_url: str = bid.result_url or bid.bid_url
             if not target_url:
-                logger.warning('Skipping bid %s — no detail URL available.', bid.bid_id)
+                logger.warning('Skipping bid %s  no detail URL available.', bid.bid_id)
                 continue
             logger.info('  Navigating to detail page: %s', target_url)
             try:
@@ -153,7 +150,6 @@ async def scrape_all_evaluations(page: Page, bids: list[Bid]) -> dict[str, list[
                 logger.error('  CAPTCHA detected for bid %s: %s', bid.bid_id, captcha_exc)
                 continue
             final_url = page.url
-
             def is_valid_detail_url(url: str) -> bool:
                 if 'bidplus.gem.gov.in' not in url:
                     return False
@@ -186,12 +182,12 @@ async def scrape_all_evaluations(page: Page, bids: list[Bid]) -> dict[str, list[
             await random_delay()
             section_found: bool = await find_evaluation_section(page)
             if not section_found:
-                logger.info('  → No evaluation section for bid %s.  Storing empty list.', bid.bid_id)
+                logger.info('   No evaluation section for bid %s.  Storing empty list.', bid.bid_id)
                 evaluations[bid.bid_id] = []
                 continue
             vendor_list: list[VendorEvaluation] = await extract_vendor_table(page, bid.bid_id)
             evaluations[bid.bid_id] = vendor_list
-            logger.info('  ✓ Extracted %d vendor evaluation(s) for %s.', len(vendor_list), bid.bid_id)
+            logger.info('   Extracted %d vendor evaluation(s) for %s.', len(vendor_list), bid.bid_id)
         except Exception as exc:
             logger.error('Unexpected error processing evaluation for bid %s: %s', bid.bid_id, exc, exc_info=True)
             await take_debug_screenshot(page, f'eval_error_{bid.bid_id}')
@@ -199,5 +195,5 @@ async def scrape_all_evaluations(page: Page, bids: list[Bid]) -> dict[str, list[
     bids_with_data: int = sum((1 for v in evaluations.values() if v))
     bids_without_data: int = sum((1 for v in evaluations.values() if not v))
     bids_failed: int = total - len(evaluations)
-    logger.info('═══ Evaluation extraction complete ═══\n  Bids with evaluation data : %d\n  Bids with empty evaluation: %d\n  Bids failed/skipped       : %d\n  Total                     : %d', bids_with_data, bids_without_data, bids_failed, total)
+    logger.info(' Evaluation extraction complete \n  Bids with evaluation data : %d\n  Bids with empty evaluation: %d\n  Bids failed/skipped       : %d\n  Total                     : %d', bids_with_data, bids_without_data, bids_failed, total)
     return evaluations

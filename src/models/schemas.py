@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field, asdict
 from typing import Optional
-
 @dataclass
 class Bid:
     bid_id: str = ''
@@ -17,10 +16,8 @@ class Bid:
     end_date: str = ''
     bid_url: str = ''
     result_url: str = ''
-
     def to_dict(self) -> dict:
         return asdict(self)
-
 @dataclass
 class BidResult:
     bid_id: str = ''
@@ -29,10 +26,8 @@ class BidResult:
     num_bidders: int = 0
     total_participants: int = 0
     result_date: str = ''
-
     def to_dict(self) -> dict:
         return asdict(self)
-
 @dataclass
 class VendorEvaluation:
     bid_id: str = ''
@@ -41,19 +36,15 @@ class VendorEvaluation:
     vendor_price: str = ''
     status_flag: str = ''
     remarks: str = ''
-
     def to_dict(self) -> dict:
         return asdict(self)
-
 @dataclass
 class ScrapedBid:
     bid: Bid
     result: Optional[BidResult] = None
     evaluations: list[VendorEvaluation] = field(default_factory=list)
-
     def to_dict(self) -> dict:
         return {'bid': self.bid.to_dict(), 'result': self.result.to_dict() if self.result else None, 'evaluations': [ev.to_dict() for ev in self.evaluations]}
-
     def flatten_to_rows(self) -> list[dict]:
         rows: list[dict] = []
         base_row: dict = self.bid.to_dict()
