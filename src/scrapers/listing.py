@@ -14,11 +14,11 @@ CARD_BID_LINK: str = '.block_header a.bid_no_hover'
 CARD_TITLE: str = '.card-body a[data-content]'
 CARD_START_DATE: str = 'span.start_date'
 CARD_END_DATE: str = 'span.end_date'
-PAGINATION_CONTAINER: str = 'ul.pagination'
-PAGINATION_ACTIVE: str = 'ul.pagination li.active a'
-PAGINATION_ITEMS: str = 'ul.pagination li a'
-PAGINATION_NEXT: str = 'ul.pagination li:last-child a'
-PAGINATION_DISABLED_NEXT: str = 'ul.pagination li.disabled:last-child'
+PAGINATION_CONTAINER: str = '.pagination2'
+PAGINATION_ACTIVE: str = '.pagination2 span.current:not(.prev):not(.next)'
+PAGINATION_ITEMS: str = '.pagination2 a.page-link'
+PAGINATION_NEXT: str = '.pagination2 a.next'
+PAGINATION_DISABLED_NEXT: str = '.pagination2 span.next'
 async def extract_single_bid_card(card_element: ElementHandle, page: Page) -> Optional[Bid]:
     bid = Bid()
     try:
