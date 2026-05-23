@@ -14,7 +14,7 @@ PROCESSED_CSV_PATH = PROCESSED_OUTPUT_DIR / 'bids_processed.csv'
 INSIGHTS_JSON_PATH = INSIGHTS_OUTPUT_DIR / 'summary_report.json'
 BASE_URL = 'https://bidplus.gem.gov.in'
 ALL_BIDS_URL = f'{BASE_URL}/all-bids'
-BID_RESULT_URL_TEMPLATE = f'{BASE_URL}/showbidDocument/{ bid_id} '
+BID_RESULT_URL_TEMPLATE = f'{BASE_URL}/showbidDocument/{{bid_id}}'
 GEM_USERNAME = os.getenv('GEM_USERNAME', '')
 GEM_PASSWORD = os.getenv('GEM_PASSWORD', '')
 HEADLESS = os.getenv('HEADLESS', 'true').lower() == 'true'
