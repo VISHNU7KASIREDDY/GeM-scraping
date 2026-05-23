@@ -183,7 +183,7 @@ async def handle_login_if_needed(page: Page, target_url: Optional[str]=None) -> 
     elapsed = 0.0
     while elapsed < max_wait_seconds:
         current_url = page.url
-        if 'bidplus.gem.gov.in' in current_url:
+        if 'bidplus.gem.gov.in' in current_url or 'fulfilment.gem.gov.in' in current_url:
             print(f'\n🎉 Login detected! Redirected to: {current_url}')
             try:
                 SESSION_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)

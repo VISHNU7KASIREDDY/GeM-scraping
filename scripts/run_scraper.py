@@ -71,18 +71,25 @@ async def run_pipeline() -> None:
                 print(f'⚠️ SSO Login flow encountered an error: {e}')
         else:
             print('⚠️ No bid result URLs found to trigger login.')
-        print('\n🛡️ Registering redirect/logout protection route...')
+        if page.is_closed():
+            print('⚠️ Browser page was closed. Re-opening a new page to resume...')
+            page = await browser_manager.new_page()
 
         async def block_redirects(route):
             url = route.request.url
             resource_type = route.request.resource_type
             if resource_type == 'document':
-                if 'auth/logout' in url or ('gem.gov.in' in url and 'bidplus' not in url and ('sso' not in url)):
+                if 'auth/logout' in url or ('gem.gov.in' in url and 'bidplus' not in url and 'fulfilment' not in url and ('sso' not in url)):
                     print(f'  🛡️ Blocked redirect/logout navigation: {url}')
                     await route.fulfill(status=204, content_type='text/html', body='<html><body>blocked</body></html>')
                     return
             await route.continue_()
-        await page.route('**', block_redirects)
+        
+        try:
+            await page.route('**', block_redirects)
+        except Exception as e:
+            print(f'⚠️ Could not register redirect protection (page might be closed): {e}')
+
         print('\n' + '─' * 60)
         print('  STEP 3 / 4 — Scraping bid results')
         print('─' * 60)
